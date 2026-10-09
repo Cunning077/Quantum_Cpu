@@ -1,4 +1,5 @@
 import numpy as np
+import memory_d as Mem
 
 class QuantumState:
     def __init__(self, num_q):
@@ -46,6 +47,12 @@ class QuantumWire:
             rs = self.apply_gates(Z, qubit)
             return rs
 
+    def y_gate(self, qubit):
+        if 1 <= qubit <= self.num_q:
+            Y = np.array([[0,-1j],[1j,0]])
+            rs = self.apply_gates(Y, qubit)
+            return rs
+
     def cnot_gate(self, control, target):
         new_state = np.zeros(self.state.num_states, dtype=complex)
         for i, amp in enumerate(self.state.state):
@@ -58,20 +65,47 @@ class QuantumWire:
                 new_state[i] = amp
         print(new_state)
         self.state.state = new_state
-                
 
-    def apply_gates(self, g, qubit):
-        I = np.eye(2)
-        gates = []
-        for i in range(self.num_q):
-            if (i + 1) == qubit:
-                gates.append(g)
-            else:
-                gates.append(I)
-        full_gate = gates[0]
-        for gate in gates[1:]:
-            full_gate = np.kron(full_gate, gate)
-        self.state.state = full_gate @ self.state.state
+    def oracle(self, target):
+        self.state.state[target] *= -1
+
+    def cz_gate(self, control, target):
+        for i, amp in enumerate(self.state.state):
+            bit = format(i, f"0{self.num_q}b")
+            if int(bit[control - 1]) == 1 and int(bit[target - 1]) == 1:
+                self.state.state *= -1
+    
+    def tCZ_gate(self):
+        t_mask = (2 ** (self.num_q)) - 1
+        self.state.state[t_mask] *= -1
+
+    def apply_gates(self, g, qubit):        
+        self.state.state = self.single_gate_kron(self.state.state, g, self.num_q, qubit)
         return self.state.state
+
+    def single_gate_kron(self, state, g, num_q, qubit):
+        state_tensor = state.reshape((2,) * num_q)
+
+        axis = qubit - 1
+        state_tensor = np.moveaxis(state_tensor, axis, 0)
+        shape = state_tensor.shape
+        pairs = state_tensor.reshape(2, -1)
+        updated = g @ pairs
+        updated = updated.reshape(shape)
+        updated = np.moveaxis(updated, 0, axis)
+        return updated.reshape(-1)
+
+    def diffusion(self):
+        for i in range(1, self.num_q + 1):
+            self.h_gate(i)
+        for i in range(1, self.num_q + 1):
+            self.not_gate(i)
+        self.tCZ_gate()
+        for i in range(1, self.num_q + 1):
+            self.not_gate(i)
+        for i in range(1, self.num_q + 1):
+            self.h_gate(i)
+
+
 
 
