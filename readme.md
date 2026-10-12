@@ -20,7 +20,7 @@
 
 ![Grover Algorithm](assets/image1.jpeg)
 
-## How to use
+## How to use (get code locally
 
 1. Requirements
     - git
@@ -41,8 +41,16 @@
 
 4. Run the program
     Use the command:
-    	` python app.py` 
+    	` python app.py`
 
+## How to use (executed
+
+1. Go to release pages and download the 'quantum-cpu-linux' file
+
+2. Make this file executable by running the command the second part is the file path so either make it relative or insert your path:
+	chmod +x quantum-cpu
+
+3. Call the file and follow the app prompts
 
 ## Final Notes
     Make use of the notes and, look into the gates how they work and come up with you own algorithms, this project is for sure going to be continued but
